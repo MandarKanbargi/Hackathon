@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimized Route Finder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='result.css') }}">
+
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="title">Optimized Route Finder</h1>
+
+        <!-- Form to input start and end locations -->
+        <form action="/route_optimizer/get_route" method="POST" class="route-form" id="routeForm">
+
+            <div class="form-group">
+                <label for="start">Start Location (City Name):</label>
+                <input type="text" id="start" name="start" placeholder="Enter starting city" required>
+            </div>
+
+            <div class="form-group">
+                <label for="end">End Location (City Name):</label>
+                <input type="text" id="end" name="end" placeholder="Enter destination city" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Get Route</button>
+        </form>
+
+        <!-- Display Loading Spinner when submitting the form -->
+        <div id="loading-spinner" class="loading-spinner" style="display:none;">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+
+        <!-- Display Map -->
+        {% if map_path %}
+        <iframe src="{{ url_for('static', filename='route_map.html') }}" width="100%" height="500"></iframe>
+        {% endif %}
+
+        <!-- Display results -->
+        {% if distance %}
+        <div class="results">
+            <h2>Route Details:</h2>
+            <div class="result-item">
+                <strong>Distance:</strong> {{ distance }} km
+            </div>
+            <div class="result-item">
+                <strong>Weather:</strong>
+                <p>{{ weather.description }}, Temp: {{ weather.temperature }}°C, Humidity: {{ weather.humidity }}%</p>
+            </div>
+            <div class="result-item">
+                <strong>Emissions Data:</strong>
+                <p>CO2: {{ emissions.co2 }} g/km</p>
+            </div>
+            <div class="result-item">
+                <strong>Traffic Condition:</strong>
+                <p>{{ traffic_condition }}</p>
+            </div>
+            <div class="result-item">
+                <strong>Estimated Travel Time:</strong>
+                <p>{{ estimated_time }}</p>
+            </div>
+        </div>
+        {% elif error %}
+        <div class="error">
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Get the form and spinner elements
+        const form = document.getElementById('routeForm');
+        const spinner = document.getElementById('loading-spinner');
+
+        // Show the spinner when the form is submitted
+        form.addEventListener('submit', function() {
+            spinner.style.display = 'block'; // Show the spinner
+        });
+    </script>
+
+</body>
+</html>
