@@ -1,19 +1,26 @@
 from flask import Flask, render_template, request
 import requests
 import folium
+import math
 
 app = Flask(__name__)
 
+VEHICLE_CAPACITY = 5000
+
 # OpenRouteService API Key
 OR_SERVICE_API_KEY = '5b3ce3597851110001cf62481d7abc2708ad4856ad63639288ec805b'
+
 # OpenWeatherMap API Key
 WEATHER_API_KEY = '5938991ca3585919457c1147d4370f6d'
+
 # TomTom Traffic API Key
 TRAFFIC_API_KEY = 'u1xqxd7esr0PWotWPAiWCBP9GeH8botj'
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/route_optimizer')
 def route_optimizer():
@@ -24,38 +31,73 @@ def route_optimizer():
 def get_route():
     start_city = request.form['start']
     end_city = request.form['end']
-    
+
     # Get Coordinates from City Names
     start_coords = geocode_city_to_coordinates(start_city)
     end_coords = geocode_city_to_coordinates(end_city)
+    load_weight = float(request.form['load_weight'])  # Load weight in kg
+    fuel_type = request.form.get("fuel_type")
+    fuel_efficiency = request.form.get("fuel_efficiency")
+
+    fuel_efficiency = int(fuel_efficiency)
+    start_coords = geocode_city_to_coordinates(start_city)
+    end_coords = geocode_city_to_coordinates(end_city)
+
+    if fuel_type not in {"petrol", "diesel", "electric"}:
+        return "Error: Invalid fuel type."
 
     if start_coords and end_coords:
-        # Get Route from OpenRouteService
-        route, distance, estimated_time = get_route_from_openrouteservice(start_coords, end_coords)
+        # Get the route and distance from OpenRouteService API
+        route, distance, estimated_time = get_route_from_osrm(start_coords, end_coords)
 
         if route:
             # Generate Map with Folium
-            map_path = generate_map(route)
+            map_path = generate_map(route, start_coords, end_coords)
 
             # Get Weather Data
             weather = get_weather_data(route)
 
             # Get Emissions Data
-            emissions = get_emissions_data(route, distance)
+            emissions = get_emissions_data(distance, fuel_type, fuel_efficiency)
 
-            # Get Traffic Data
-            traffic_condition, traffic_time = get_traffic_data(start_coords, end_coords)
+            # Get traffic data and condition
+            traffic_condition, traffic_speed = get_traffic_data(start_coords, end_coords)
 
-            return render_template('route_optimizer.html', route=route, distance=distance, weather=weather, emissions=emissions, map_path=map_path, traffic_condition=traffic_condition, traffic_time=traffic_time, estimated_time=estimated_time)
+            # Adjust speed based on load weight
+            # Example logic: Reduce speed by 10% for every 1000 kg over 5000 kg or increase for lighter loads
+            if load_weight > VEHICLE_CAPACITY:
+                reduction_factor = (load_weight - VEHICLE_CAPACITY) / 1000 * 0.1  # 10% reduction for every 1000 kg
+                traffic_speed *= max(0.5, (1 - reduction_factor))  # Ensure minimum speed factor of 0.5
+            elif load_weight < VEHICLE_CAPACITY:
+                increase_factor = (VEHICLE_CAPACITY - load_weight) / 1000 * 0.05  # 5% increase for every 1000 kg
+                traffic_speed *= (1 + increase_factor)
+
+            # Calculate the estimated time using the adjusted speed and distance
+            estimated_time_hours = distance / traffic_speed  # Time in hours
+            estimated_time_minutes = estimated_time_hours * 60  # Convert to minutes
+            formatted_time = convert_minutes_to_hr_min(estimated_time_minutes)  # Convert to hr:min format
+
+            return render_template(
+                'route_optimizer.html',
+                route=route,
+                distance=distance,
+                weather=weather,
+                emissions=emissions,
+                map_path=map_path,
+                traffic_condition=traffic_condition,
+                estimated_time=formatted_time
+            )
         else:
             return render_template('route_optimizer.html', error="Could not find a route between the cities.")
     else:
         return render_template('route_optimizer.html', error="Could not geocode one or both city names.")
 
+
 def convert_minutes_to_hr_min(minutes):
     hours = minutes // 60
     minutes_remaining = minutes % 60
     return f"{int(hours)}h {int(minutes_remaining)}m"
+
 
 def geocode_city_to_coordinates(city_name):
     # Geocoding API to get coordinates from city name
@@ -75,27 +117,25 @@ def geocode_city_to_coordinates(city_name):
     except requests.exceptions.RequestException as e:
         print(f"Error in geocoding request: {e}")
         return None
-def get_route_from_openrouteservice(start_coords, end_coords):
-    url = f'https://api.openrouteservice.org/v2/directions/driving-car?api_key={OR_SERVICE_API_KEY}&start={start_coords[0]},{start_coords[1]}&end={end_coords[0]},{end_coords[1]}'
+
+
+def get_route_from_osrm(start_coords, end_coords):
+    # OSRM Route API
+    url = f'http://router.project-osrm.org/route/v1/driving/{start_coords[0]},{start_coords[1]};{end_coords[0]},{end_coords[1]}?overview=full&geometries=geojson'
 
     try:
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
 
-        if 'features' in data and len(data['features']) > 0:
-            route = data['features'][0]['geometry']['coordinates']
-            distance = data['features'][0]['properties']['segments'][0]['distance'] / 1000  # Convert to km
+        if 'routes' in data and len(data['routes']) > 0:
+            route = data['routes'][0]['geometry']['coordinates']
+            distance = data['routes'][0]['legs'][0]['distance'] / 1000  # Convert to km
             distance = round(distance, 2)
 
-            # Get traffic data for speed adjustment
-            traffic_condition, speed = get_traffic_data(start_coords, end_coords)
-
-            # Calculate estimated time based on dynamic speed
-            estimated_time = distance / speed  # Time in hours
+            # Calculate estimated time based on distance and default speed (50 km/h for simplicity)
+            estimated_time = distance / 50  # Time in hours
             estimated_time_minutes = estimated_time * 60  # Convert to minutes
-
-            # Convert time to hr:min format
             formatted_time = convert_minutes_to_hr_min(estimated_time_minutes)
 
             return route, distance, formatted_time
@@ -107,9 +147,9 @@ def get_route_from_openrouteservice(start_coords, end_coords):
         return None, None, None
 
 
-def generate_map(route):
+def generate_map(route, start_coords, end_coords):
     """
-    Generate a map with a highlighted route and markers only for the start and end points.
+    Generate a map with a highlighted route and markers only for the start, end points, and fuel stations.
     """
     # Create a map centered on the starting location
     start_lat, start_lon = route[0][1], route[0][0]  # Coordinates are in [lon, lat] format
@@ -136,15 +176,85 @@ def generate_map(route):
     folium.PolyLine(
         locations=[(lat, lon) for lon, lat in route],
         color="blue",
-        weight=2.5,
+        weight=4,
         opacity=1
     ).add_to(map_obj)
+
+    # Add fuel stations near the route
+    fuel_stations = get_nearby_fuel_stations(route)
+    for station in fuel_stations:
+        # Create a custom DivIcon for Font Awesome
+        fuel_icon_html = """
+            <div style="font-size: 25px; color: #1a1a1a;">
+                <i class="fa-solid fa-gas-pump fa-beat" style="color: #393e41;"></i>
+            </div>
+        """
+        folium.Marker(
+            location=[station['lat'], station['lon']],
+            popup=station['name'],
+            icon=folium.DivIcon(html=fuel_icon_html)
+        ).add_to(map_obj)
 
     # Save the map to an HTML file
     map_path = 'static/route_map.html'
     map_obj.save(map_path)
 
     return map_path
+
+
+
+def haversine(lat1, lon1, lat2, lon2):
+    # Haversine formula to calculate distance between two points on the earth (in kilometers)
+    R = 6371  # Radius of the Earth in kilometers
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c  # Distance in kilometers
+
+def get_nearby_fuel_stations(route):
+    """
+    Fetch nearby fuel stations along the route using Overpass API (OpenStreetMap).
+    Filters stations within 1 km of the route.
+    """
+    fuel_stations = []
+    # We'll query for fuel stations within a bounding box around the route
+    start_lat, start_lon = route[0][1], route[0][0]
+    end_lat, end_lon = route[-1][1], route[-1][0]
+
+    # Set a bounding box around the route (This can be adjusted as per your need)
+    bbox = f"{min(start_lat, end_lat)},{min(start_lon, end_lon)},{max(start_lat, end_lat)},{max(start_lon, end_lon)}"
+
+    overpass_url = "http://overpass-api.de/api/interpreter"
+    overpass_query = f"""
+    [out:json];
+    (
+        node["amenity"="fuel"]({bbox});
+    );
+    out body;
+    """
+    
+    try:
+        response = requests.get(overpass_url, params={'data': overpass_query})
+        response.raise_for_status()
+        data = response.json()
+
+        for element in data['elements']:
+            name = element.get('tags', {}).get('name', 'Unknown Fuel Station')
+            lat = element['lat']
+            lon = element['lon']
+            # Check if the fuel station is within 1 km of the route
+            for point in route:
+                route_lat, route_lon = point[1], point[0]
+                distance = haversine(route_lat, route_lon, lat, lon)
+                if distance <= 1:  # If within 1 km
+                    fuel_stations.append({'name': name, 'lat': lat, 'lon': lon})
+                    break  # Exit the loop once a nearby fuel station is found
+
+        return fuel_stations
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching fuel stations: {e}")
+        return []
 
 
 def get_weather_data(route):
@@ -166,22 +276,24 @@ def get_weather_data(route):
     except requests.exceptions.RequestException as e:
         print(f"Error in weather request: {e}")
         return None
-    
-def get_emissions_data(route, distance):
-    # Assuming a default emissions factor for a cargo truck (in grams per kilometer)
-    emissions_factor = 200  # Placeholder value (grams of CO2 per kilometer)
 
-    # Calculate total emissions based on the distance
-    total_emissions = emissions_factor * distance  # Total emissions in grams
-    total_emissions_kg = total_emissions / 1000  # Convert to kilograms for better readability
-    # Round emissions to 2 decimal places
-    total_emissions_kg = round(total_emissions_kg, 2)
 
-    return {"co2": total_emissions_kg}  # Return emissions in kilograms
+def get_emissions_data(distance_km, fuel_type, fuel_efficiency):
+    """Calculate CO2 emissions based on distance, fuel type, and fuel efficiency."""
+    if fuel_type == "electric":
+        return 0  # Assuming electric vehicles have no CO2 emissions
+    else:
+        # Average CO2 emission factors (in grams per km)
+        emission_factors = {
+            "petrol": 350,  # grams per km
+            "diesel": 800,  # grams per km
+        }
+        emissions = emission_factors.get(fuel_type, 0) * distance_km  # in grams
+        return emissions / 1000  # Convert grams to kilograms
+
 
 def fetch_traffic(start_coords):
     """Fetch traffic conditions for the starting point."""
-
     # TomTom Traffic API for traffic data
     tomtom_traffic_url = "https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json"
     tomtom_params = {
@@ -192,7 +304,6 @@ def fetch_traffic(start_coords):
     traffic_info = {}
 
     try:
-
         # Fetch traffic data
         traffic_response = requests.get(tomtom_traffic_url, params=tomtom_params)
         if traffic_response.status_code == 200:
