@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Optimized Route Finder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* .dark-theme {
+            --tw-bg-opacity: 1;
+            background-color: rgba(17, 24, 39, var(--tw-bg-opacity));
+            color: rgba(229, 231, 235, var(--tw-text-opacity));
+        } */
+
+      .dark-theme input,
+      .dark-theme select,
+      .dark-theme textarea {
+        background-color: rgba(55, 65, 81, var(--tw-bg-opacity));
+        color: rgba(229, 231, 235, var(--tw-text-opacity));
+        border: 1px solid rgba(75, 85, 99, var(--tw-border-opacity));
+      }
+
+      /* .dark-theme .output-card {
+            background-color: rgba(55, 65, 81, var(--tw-bg-opacity));
+        } */
+
+      .day-theme {
+        --tw-bg-opacity: 1;
+        background-color: rgba(255, 255, 255, var(--tw-bg-opacity));
+        color: rgba(31, 41, 55, var(--tw-text-opacity));
+      }
+
+      .day-theme input,
+      .day-theme select,
+      .day-theme textarea {
+        background-color: rgba(240, 240, 240, var(--tw-bg-opacity));
+        color: rgba(31, 41, 55, var(--tw-text-opacity));
+        border: 1px solid rgba(200, 200, 200, var(--tw-border-opacity));
+      }
+
+      .day-theme .output-card {
+        background-color: rgba(240, 240, 240, var(--tw-bg-opacity));
+      }
+
+      .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .form-group input,
+      .form-group select {
+        transition: background-color 0.3s ease, color 0.3s ease,
+          border-color 0.3s ease;
+      }
+
+      /* Fullscreen map container */
+      .map-container {
+        position: relative;
+        width: 100%;
+        height: 90vh;
+        z-index: 1;
+      }
+
+      iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      /* Positioning output cards at the bottom horizontally */
+      .output-container {
+        position: absolute;
+        bottom: 10px;
+        left: 370px;
+        right: 15px;
+        display: flex;
+        justify-content: space-evenly;
+        padding: 10px;
+        z-index: 10;
+        gap: 10px;
+      }
+
+      .output-card,
+      .output-card1,
+      .output-card2,
+      .output-card3,
+      .output-card4 {
+        color: white;
+        padding: 20px; /* Increased padding for more height */
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        flex: 1;
+        text-align: center;
+        font-size: 1.2rem;
+        min-height: 100px; /* Increased minimum height */
+        float:left;
+        width:100px;
+        overflow-y: auto;
+        height: 200px;
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;
+      }
+
+      .output-card1 {
+        background: rgba(10, 96, 177, 0.719);
+      }
+      .output-card2 {
+        background: rgba(200, 177, 2, 0.7);
+      }
+      .output-card3 {
+        background: rgba(199, 7, 7, 0.686);
+      }
+      .output-card4 {
+        background: rgba(50, 50, 50, 0.686);
+      }
+
+      .output-card {
+        background: rgba(0, 195, 72, 0.7); /* Green background */
+        color: white;
+        padding: 20px; /* Increased padding for more height */
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        flex: 1;
+        text-align: center;
+        min-height: 100px; /* Increased minimum height */
+      }
+
+      .output-card .first{
+          padding-bottom: 15px;
+        }
+
+      /* The input form will be fixed on the page */
+      .form-container {
+        position: fixed;
+        top: 13%;
+        left: 3%;
+        width: 300px;
+        z-index: 20;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Placeholder styling */
+      ::placeholder {
+        color: gray; /* Set placeholder text to gray */
+      }
+
+      /* Input fields text color */
+      .form-group input,
+      .form-group select {
+        color: rgb(15, 15, 15); /* Set input text to white */
+      }
+
+      /* Input field background color */
+      .form-group input {
+        background-color: #e8f0fe; /* Set input background color */
+      }
+
+      /* Fuel Type select background color */
+      .form-group select {
+        background-color: #e8f0fe; /* Set fuel type field background color */
+
+        color: black; /* Set the text color to black */
+
+        #load_weight {
+          color: black !important; /* Force text color to black */
+          background-color: #e8f0fe; /* Keep the existing background color */
+          border: 1px solid #ccc; /* Optional: Adjust border color if needed */
+        }
+
+      }
+    </style>
+  </head>
+
+  <body class="dark-theme" id="theme">
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-900 p-4 flex justify-between items-center">
+      <div class="text-blue-500 text-xl font-bold pl-12">
+        Optimized Route Finder
+      </div>
+      <div class="flex items-center space-x-4">
+        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"><a href="{{ url_for('dashboard')}}">Dashboard</a></button>
+        <img
+          src="../static/Image/profile.jpg"
+          alt="Profile Photo"
+          class="w-10 h-10 rounded-full border border-gray-600"
+        />
+      </div>
+    </nav>
+
+    <!-- Main content -->
+    <div class="map-container">
+      <!-- Map iframe -->
+      <iframe
+        src="{{ url_for('static', filename='route_map.html') }}"
+        id="map"
+      ></iframe>
+
+      <!-- Output Cards at the bottom -->
+      <div class="output-container">
+        {% if route_data is defined and route_data %}
+        <div class="output-card">
+          <p class="font-bold" style="font-size: 27px; padding-bottom: 10px;">Distance</p>
+          <p style="padding-bottom: 15px; font-size: 20px; font-weight: bold;">Shortest: {{ route_data[0].distance }} km</p>
+
+          {% if route_data|length > 1 %}
+          <p class="first" style="padding-bottom: 15px; font-size: 20px; font-weight: bold;">Longest: {{ route_data[1].distance }} km</p>
+          {% endif %}
+        </div>
+        <div class="output-card1">
+          <p class="font-bold" style="font-size: 27px; padding-bottom: 10px;">Weather</p>
+          <p class="first" style="padding-bottom: 15px; font-size: 20px; font-weight: bold;">
+            Route 1: {{ route_data[0].weather.description }}, Temp:
+            {{ route_data[0].weather.temperature }}, Humidity: {{
+            route_data[0].weather.humidity }}%
+          </p>
+
+          {% if route_data|length > 1 %}
+          <p class="first" style="padding-bottom: 15px; font-size: 20px; font-weight: bold;">
+            Route 2: Description {{ route_data[1].weather.description }}, Temp:
+            {{ route_data[1].weather.temperature }}, Humidity: {{
+            route_data[1].weather.humidity }}%
+          </p>
+          {% endif %}
+        </div>
+        <div class="output-card2">
+          <p class="font-bold" style="font-size: 27px; padding-bottom: 10px;">Emissions Data</p>
+          <p style="padding-bottom: 15px; font-size: 20px; font-weight: bold;">Route 1: CO2: {{ route_data[0].emissions }} kg</p>
+
+          {% if route_data|length > 1 %}
+          <p class="first" style="padding-bottom: 15px; font-size: 20px; font-weight: bold;">Route 2: CO2: {{ route_data[1].emissions }} kg</p>
+          {% endif %}
+        </div>
+        <div class="output-card3">
+          <p class="font-bold" style="font-size: 27px; padding-bottom: 10px;">Traffic Condition</p>
+          <p class="first" style="padding-bottom: 15px; font-size: 20px; font-weight: bold;">Route 1: {{ route_data[0].traffic_condition }}</p>
+
+          {% if route_data|length > 1 %}
+          <p class="first" style="padding-bottom: 15px; font-size: 20px; font-weight: bold;">Route 2: {{ route_data[1].traffic_condition }}</p>
+          {% endif %}
+        </div>
+        <div class="output-card4">
+          <p class="font-bold" style="font-size: 27px; padding-bottom: 10px;">Estimated Travel Time</p>
+          <p class="first" style="padding-bottom: 15px; font-size: 20px; font-weight: bold;">Route 1: {{ route_data[0].estimated_time }}</p>
+
+          {% if route_data|length > 1 %}
+          <p class="first" style="padding-bottom: 15px; font-size: 20px; font-weight: bold;">Route 2: {{ route_data[1].estimated_time }}</p>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Form to input values -->
+    <div class="form-container">
+      <h1 class="text-3xl px-8 font-bold mb-4">Enter Route</h1>
+      <form
+        action="/route_optimizer/get_route"
+        method="POST"
+        class="space-y-6"
+        id="routeForm"
+      >
+        <div class="form-group">
+          <label for="start" class="block mb-2"
+            >Start Location (City Name):</label
+          >
+          <input
+            type="text"
+            id="start"
+            name="start"
+            placeholder="Enter starting city"
+            required
+            class="w-full p-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          />
+        </div>
+        <div class="form-group">
+          <label for="end" class="block mb-2">End Location (City Name):</label>
+          <input
+            type="text"
+            id="end"
+            name="end"
+            placeholder="Enter destination city"
+            required
+            class="w-full p-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="load_weight" class="block mb-2">Load Weight (kg):</label>
+          <input
+            type="number"
+            name="load_weight"
+            id="load_weight"
+            placeholder="Enter load weight (ex-500kg)"
+            required
+            class="w-full p-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          />
+        </div>
+        <div class="form-group">
+          <label for="fuel_type" class="block mb-2">Fuel Type:</label>
+          <select
+            id="fuel_type"
+            name="fuel_type"
+            required
+            class="w-full p-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          >
+            <option value="petrol">Petrol</option>
+            <option value="diesel">Diesel</option>
+            <option value="electric">Electric</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fuel_efficiency" class="block mb-2"
+            >Fuel Efficiency (km/l or km/kWh):</label
+          >
+          <input
+            type="text"
+            id="fuel_efficiency"
+            name="fuel_efficiency"
+            required
+            class="w-full p-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          />
+        </div>
+        <button
+          type="submit"
+          class="w-full bg-blue-600 text-white py-2 px-2 rounded-lg hover:bg-blue-700 transition font-bold"
+        >
+          Get Route
+        </button>
+      </form>
+    </div>
+
+    <script>
+      const themeToggleBtn = document.getElementById("themeToggleBtn");
+      const body = document.getElementById("theme");
+
+      themeToggleBtn.addEventListener("click", function () {
+        if (body.classList.contains("dark-theme")) {
+          body.classList.remove("dark-theme");
+          body.classList.add("day-theme");
+          themeToggleBtn.textContent = "Switch to Dark Mode";
+        } else {
+          body.classList.remove("day-theme");
+          body.classList.add("dark-theme");
+          themeToggleBtn.textContent = "Switch to Day Mode";
+        }
+      });
+
+      const form = document.getElementById("routeForm");
+      const spinner = document.getElementById("loading-spinner");
+
+      form.addEventListener("submit", function () {
+        spinner.style.display = "flex";
+      });
+    </script>
+  </body>
+</html>

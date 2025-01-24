@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimized Route Finder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Style the map container */
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+
+        /* Spinner */
+        .spinner {
+            border-top-color: transparent;
+            border-radius: 50%;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .gradient-text {
+        background: linear-gradient(90deg, #ffffff, #9d9d9d); /* White to off-white */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+}
+
+       
+    
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9ff;
+        }
+    /* Custom Hover Effect for Buttons */
+.card-hover-effect-btn {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover-effect-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Hover Effect for the Pricing Cards */
+.card-hover-effect-card {
+    transition: box-shadow 0.3s ease;
+}
+
+.card-hover-effect-card:hover {
+    transition: all ease-in-out 0.3s;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.custom-height {
+        height: 27rem;
+    }
+
+    .glow-effect {
+    box-shadow: 0 0 15px 2px rgba(59, 130, 246, 0.7); /* Glow effect */
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.glow-effect:hover {
+    box-shadow: 0 0 25px 5px rgba(59, 131, 246, 0.63); /* Intensified glow on hover */
+}
+
+
+
+
+
+
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <!-- Navbar -->
+    <nav class="bg-gray-800 py-4">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"></path>
+                </svg>
+                <a href="#" class="text-2xl font-bold hover:text-blue-400">RouteOptimizer</a>
+            </div>
+            <div class="space-x-6 hidden md:flex">
+                <a href="#features" class="hover:text-blue-400 mt-2">Features</a>
+                <a href="#pricing" class="hover:text-blue-400 mt-2">Pricing</a>
+                <a href="{{ url_for('route_optimizer')}}" id="routeOptimizerButton" class="bg-yellow-500 text-slate-900 px-3 py-2 text-lg font-semibold tracking-wider rounded-full hover:bg-yellow-400 transition-all">Start Free Trial</a>
+            </div>
+            <button class="md:hidden text-white" id="menuButton">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gray-900 text-white py-24 px-6" style="height: 120vh;">
+        <div class="max-w-7xl mx-auto text-center">
+            <h1 class=" text-5xl font-extrabold sm:text-6xl md:text-7xl mb-12">Optimize Your Routes, Save Time and Money</h1>
+            <p class="text-xl sm:text-2xl mb-12">RouteOptimizer helps you find the fastest, most efficient routes for delivery, commuting, and travel. Get started now!</p>
+            
+            <div class="ajayyyy flex justify-center items-center space-y-4">
+                <!-- Image Container -->
+                <img src="{{ url_for('static', filename='Image/main.jpg') }}" class="rounded-lg max-w-full" alt="Description">
+
+            <script>
+                document.getElementById('routeOptimizerButton').addEventListener('click', function() {
+                    document.getElementById('start').style.display = 'block'; // Show the start input field
+                });
+            </script>
+        </div>
+    </section>
+
+    <!-- Intelligent route optimization -->
+    <section class="py-24 bg-gray-800 text-white">
+        <div class="max-w-7xl mx-auto px-6 flex items-center">
+            <!-- Left Side: Image -->
+            <div class="w-full md:w-1/2">
+                <img src="{{ url_for('static', filename='Image/image_2.webp') }}" alt="Shortest Route & CO2 Reduction" class="rounded-lg shadow-lg">
+            </div>
+
+            <!-- Right Side: Information -->
+            <div class="w-full md:w-1/2 mt-12 md:mt-0 md:ml-12">
+                <h2 class="text-4xl text-yellow-500 font-semibold mb-6">Intelligent route optimization</h2>
+                <p class="text-lg text-gray-200 mb-4">By choosing the most efficient routes, you not only save valuable time but also reduce the carbon footprint associated with travel. Optimizing your routes means less fuel consumption, fewer emissions, and a greener planet.</p>
+                <p class="text-lg text-gray-200 mb-6">This reduction in emissions directly translates into cost savings, making your business more profitable while contributing to environmental sustainability. The shortest routes also help in better fleet management, reducing fuel expenses and improving operational efficiency.</p>
+                <p class="text-lg text-gray-200">Make smarter choices for your business and the planet by leveraging RouteOptimizer's cutting-edge technology.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- APIs Used in This Project Section -->
+    <section class="py-24 bg-gray-800 text-white">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-12 text-yellow-500">APIs Used in This Project</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
+                <!-- OpenRouteService API Card -->
+<div class="bg-slate-700 shadow-xl rounded-lg p-8 text-center">
+<img src="{{ url_for('static', filename='Image/open_route.png') }}" class="w-full mb-4">
+    <h3 class="text-xl font-semibold mb-4">OpenRouteService API</h3>
+    <p class="text-gray-400 mb-4">OpenRouteService (ORS) is a powerful routing and geospatial analysis service provided by HeiGIT (Heidelberg Institute for Geoinformation Technology). It offers a range of services such as route planning, geocoding, isochrones (reachability analysis), and more, using OpenStreetMap data.</p>
+    <a href="https://openrouteservice.org/sign-up/" target="_blank" class="text-blue-400 hover:text-blue-500">Learn more</a>
+</div>
+
+                <!-- OpenWeatherMap API Card -->
+                <div class="bg-slate-700  shadow-xl rounded-lg p-8 text-center">
+                    <img src="{{ url_for('static', filename='Image/weather.png') }}" alt="OpenRouteService API" class="w-full mb-4">
+                    <h3 class="text-xl font-semibold mb-4">OpenWeatherMap API</h3>
+                    <p class="text-gray-400 mb-4">The OpenWeatherMap API provides real-time weather data, helping optimize routes by considering factors such as temperature, humidity, and weather conditions. This ensures that travelers can avoid adverse weather situations during their trips.</p>
+                    <a href="https://openweathermap.org/api" target="_blank" class="text-blue-400 hover:text-blue-500">Learn more</a>
+                </div>
+
+                <!-- TomTom Traffic API Card -->
+                <div class="bg-slate-700  shadow-xl rounded-lg p-8 text-center">
+                    <img src="{{ url_for('static', filename='Image/tomtom.png') }}" alt="OpenRouteService API" class="w-full mb-4">
+                    <h3 class="text-xl font-semibold mb-4">TomTom Traffic API</h3>
+                    <p class="text-gray-400 mb-4">The TomTom Traffic API provides accurate, real-time traffic data, helping to calculate the most efficient routes by considering current traffic conditions. This integration enables route adjustments based on traffic jams, accidents, and road closures.</p>
+                    <a href="https://developer.tomtom.com/traffic-api" target="_blank" class="text-blue-400 hover:text-blue-500">Learn more</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+  
+<!-- Efficient Delivery, Simplified for You -->
+<section>
+    <div class="max-w-5xl mx-auto py-16">
+        <h1 class="text-4xl font-semibold text-gray-900 mb-12"></h1>
+        <h2 class="text-3xl text-center font-bold mb-12 text-yellow-500">Efficient Delivery, Simplified for You</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div class="text-center bg-white rounded-lg shadow p-8">
+                <img src="{{ url_for('static', filename='Image/non-overlapping-routes.webp') }}" class="w-full mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-2">No more spaghetti routes</h2>
+                <p class="text-gray-600">Happier drivers with practical, efficient, and non-overlapping routes.</p>
+            </div>
+            <div class="text-center bg-white rounded-lg shadow p-8">
+                <img src="{{ url_for('static', filename='Image/Traffic-aware-routing.svg') }}" alt="Illustration of trucks and cars on a road" class="w-full mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-2">Traffic-aware routing</h2>
+                <p class="text-gray-600">Intelligent route optimization that avoids rush hour traffic, busy tunnels, and bridges.</p>
+            </div>
+            <div class="text-center bg-white rounded-lg shadow p-8">
+                <img src="{{ url_for('static', filename='Image/drag-and-drop-interface.webp') }}" alt="User interface of a delivery route management tool" class="w-full mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-2">Easy-to-use, yet powerful</h2>
+                <p class="text-gray-600">A simple, yet powerful interface, so you're always on top of your deliveries.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+        <!-- Display Loading Spinner when submitting the form -->
+        <div id="loading-spinner" class="hidden text-center mt-8">
+            <div class="spinner mx-auto"></div>
+            <p class="text-white mt-4">Calculating...</p>
+        </div>
+
+        <!-- Smart Route Information
+        <div class="mt-8 bg-gray-800 p-6 rounded-lg">
+            <h2 class="text-xl font-semibold">What is Smart Routing?</h2>
+            <p class="text-gray-400 mt-4">Smart Routing utilizes live traffic data, weather conditions, and real-time information to calculate the fastest and most efficient route. By analyzing various parameters, we help you save time and reduce costs.</p>
+        </div> -->
+
+     
+       <!-- Power full feature -->
+        <section id="features" class="py-10 bg-gray-800">
+            <div class="max-w-7xl mx-auto text-center">
+                <h2 class="text-3xl font-bold text-yellow-500 mb-12">Powerful Features</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
+                    
+                    <!-- Fast Route Calculation Card -->
+                    <div class=" rounded-lg p-8 text-center transition-all duration-300 relative group overflow-hidden transform hover:scale-105 hover:py-10 hover:h-auto">
+                        <div class="cursor-pointer">
+                            <img src="{{ url_for('static', filename='Image/fast-route-calculation.jpg') }}" alt="Fast Route Calculation" class="w-full h-48 object-cover mb-4 rounded-lg transition-all duration-300 group-hover:h-64">
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-white mt-6">Fast Route Calculation</h3> <!-- Added mt-6 here for space -->
+                        <p class="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 group-hover:relative group-hover:mt-4">
+                             Get real-time optimized routes that save you time and effort on the road. Our system uses advanced algorithms to calculate the fastest routes, considering real-time traffic data, road closures, and historical traffic patterns. This ensures you reach your destination quickly and efficiently.
+                        </p>
+                    </div>
+        
+                    <!-- Route Traffic Updates Card -->
+                    <div class="rounded-lg p-8 text-center transition-all duration-300 relative group overflow-hidden transform hover:scale-105 hover:py-12 hover:h-auto">
+                        <div class="cursor-pointer">
+                            <img src="{{ url_for('static', filename='Image/route-traffic-update.jpg') }}" alt="Route Traffic Update" class="w-full h-48 object-cover mb-4 rounded-lg transition-all duration-300 group-hover:h-64">
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-white mt-6">Route Traffic Update</h3> <!-- Added mt-6 here for space -->
+                        <p class="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 group-hover:relative group-hover:mt-4">
+                            Stay informed with real-time route traffic updates to make smarter travel decisions. Our service integrates the latest traffic data to provide you with accurate insights, helping you avoid congested areas and select the most efficient routes. Enhance your travel experience with up-to-date traffic information.
+                        </p>
+                    </div>
+        
+                    <!-- Emission Reduction Card -->
+                    <div class=" rounded-lg p-8 text-center transition-all duration-300 relative group overflow-hidden transform hover:scale-105 hover:py-12 hover:h-auto">
+                        <div class="cursor-pointer">
+                            <img src="{{ url_for('static', filename='Image/emission-reduction.jpg') }}" alt="Emission Reduction" class="w-full h-48 object-cover mb-4 rounded-lg transition-all duration-300 group-hover:h-64">
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-white mt-6">Emission Reduction</h3> <!-- Added mt-6 here for space -->
+                        <p class="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 group-hover:relative group-hover:mt-4">
+                            Our system helps reduce emissions by optimizing routes to minimize fuel consumption. By avoiding traffic congestion and selecting the most efficient paths, you can lower your carbon footprint and contribute to a cleaner environment. Make eco-friendly choices without compromising on efficiency.
+                        </p>
+                    </div>
+        
+                </div>
+            </div>
+        </section>
+        
+
+
+
+
+
+
+    
+<!-- Pricing Section -->
+<section>
+    <div class="max-w-5xl mx-auto py-16">
+<div class="flex justify-center items-center mt-12 space-x-9">
+    <h2 class="text-3xl font-bold text-yellow-500">Select your Plan</h2>
+    <!-- <button id="monthly-btn" class="bg-white text-purple-700 font-bold py-2 px-4 rounded-full mr-2 card-hover-effect-btn" onclick="showPlans('monthly')">Monthly</button>
+    <button id="annually-btn" class="bg-white text-purple-700 font-bold py-2 px-4 rounded-full card-hover-effect-btn" onclick="showPlans('annually')">Annually</button> -->
+</div>
+<div class="flex justify-center mt-10 space-x-12">
+    <!-- Basic Plan Card -->
+    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 bg-zinc-800 w-72 custom-height card-hover-effect-card glow-effect">
+        <h2 class="text-xl font-semibold mb-2 text-blue-600">Basic Pack</h2>
+        <p class="text-slate-300 mb-4">The essentials to provide your best work for clients. Ideal for route optimization and basic emission reduction.</p>
+        <p id="basic-price" class="text-3xl font-bold mb-2 text-blue-600">$180<span class="text-lg font-normal">/year</span></p>
+        <button class="bg-transparent border border-blue-500 text-blue-500 font-semibold py-2 px-4 rounded-full mb-4">Buy plan</button>
+        <ul class="text-slate-300">
+            <li class="flex items-center mb-2"><i class="fas fa-check text-blue-600 mr-2"></i>5 Api</li>
+            <li class="flex items-center mb-2"><i class="fas fa-check text-blue-600 mr-2"></i>Up to 10,000 requests</li>
+            <li class="flex items-center"><i class="fas fa-check text-blue-600 mr-2"></i>Basic analytics</li>
+        </ul>
+    </div>
+    
+    <!-- Pro Plan Card -->
+   <!-- Pro Plan Card with Glow Effect -->
+<div class="bg-white rounded-lg shadow-md p-6 border-2 border-blue-600 w-72 custom-height bg-zinc-800 card-hover-effect-card glow-effect">
+    <h2 class="text-xl font-semibold mb-2 text-blue-600">Pro Pack</h2>
+    <p class="text-slate-300 mb-4">A plan that scales with your rapidly growing business, enhancing route optimization and reducing emissions significantly.</p>
+    <p id="pro-price" class="text-3xl font-bold mb-2 text-blue-600">$130<span class="text-lg font-normal">/ 6month</span></p>
+    <button class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-full mb-4 hover:bg-blue-700 transition">Buy plan</button>
+    <ul class="text-slate-300">
+        <li class="flex items-center mb-2"><i class="fas fa-check text-slate-300 mr-2"></i>10 Api</li>
+        <li class="flex items-center"><i class="fas fa-check text-slate-300 mr-2"></i>50,000 Requests</li>
+        <li class="flex items-center mb-2"><i class="fas fa-check text-slate-300 mr-2"></i>Advanced analytics</li>
+        <!-- <li class="flex items-center mb-2"><i class="fas fa-check text-slate-300 mr-2"></i>24-hour support response time</li> -->
+        
+    </ul>
+</div>
+
+    <!-- Elite Plan Card -->
+    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 bg-zinc-800 w-72 custom-height card-hover-effect-card glow-effect">
+        <h2 class="text-xl font-semibold mb-2 text-blue-600">Elite Pack</h2>
+        <p class="text-slate-300 mb-4">Dedicated support and infrastructure for your company. Maximum efficiency in route optimization and emission reduction.</p>
+        <p id="elite-price" class="text-3xl font-bold mb-2 text-blue-600">$80<span class="text-lg font-normal">/3month</span></p>
+        <button class="bg-transparent border border-blue-500 text-blue-500 font-semibold py-2 px-4 rounded-full mb-4">Buy plan</button>
+        <ul class="text-slate-300">
+            <li class="flex items-center mb-2"><i class="fas fa-check text-blue-600 mr-2"></i>Acess to all Api</li>
+            <li class="flex items-center mb-2"><i class="fas fa-check text-blue-600 mr-2"></i>2,00,000 Requests</li>
+            <li class="flex items-center mb-2"><i class="fas fa-check text-blue-600 mr-2"></i>Advanced analytics</li>
+            <!-- <li class="flex items-center mb-2"><i class="fas fa-check text-blue-600 mr-2"></i>1-hour, dedicated support response time</li>
+            <li class="flex items-center mb-2"><i class="fas fa-check text-blue-600 mr-2"></i>Marketing automations</li>
+            <li class="flex items-center"><i class="fas fa-check text-blue-600 mr-2"></i>Custom reporting tools</li> -->
+        </ul>
+    </div>
+</div>
+</div>
+</section>
+
+    
+    
+    
+
+    <!-- CTA Section -->
+    <section id="cta" class="py-24 bg-gray-800 text-white">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-6 text-yellow-500">Start Optimizing Your Routes Today</h2>
+            <p class="text-xl mb-8">Sign up now and experience the convenience of optimized routes for your business or personal use.</p>
+            <a href="{{ url_for('route_optimizer') }}" id="routeOptimizerButton" 
+            class="bg-yellow-500 text-slate-900 px-6 py-4 tracking-wider text-lg font-semibold rounded-full hover:bg-yellow-400 transition-all">Start Free Trial</a>
+            <!-- <button onclick="location.href='/route_optimizer'" class="start-btn">Start Trial</button> -->
+
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer id="contact" class="bg-gray-900 text-white py-8">
+        <div class="max-w-7xl mx-auto text-center">
+            <p>&copy; 2025 RouteOptimizer. All rights reserved.</p>
+            <div class="mt-4 space-x-6">
+                <a href="https://www.facebook.com" target="_blank" class="hover:text-yellow-500">Facebook</a>
+                <a href="https://www.twitter.com" target="_blank" class="hover:text-yellow-500">Twitter</a>
+                <a href="https://www.linkedin.com" target="_blank" class="hover:text-yellow-500">LinkedIn</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Get the form and spinner elements
+        const form = document.getElementById('routeForm');
+        const spinner = document.getElementById('loading-spinner');
+
+        // Show the spinner when the form is submitted
+        form.addEventListener('submit', function() {
+            spinner.style.display = 'block'; // Show the spinner
+        });
+        
+    function toggleExpand(element) {
+        const p = element.parentElement.querySelector('p');
+        p.classList.toggle('hidden');
+        p.classList.toggle('block');
+    }
+
+    function showPlans(planType) {
+            let basicPrice = document.getElementById('basic-price');
+            let proPrice = document.getElementById('pro-price');
+            let elitePrice = document.getElementById('elite-price');
+            
+            if (planType === 'monthly') {
+                basicPrice.innerHTML = '$19<span class="text-lg font-normal">/month</span>';
+                proPrice.innerHTML = '$59<span class="text-lg font-normal">/month</span>';
+                elitePrice.innerHTML = '$99<span class="text-lg font-normal">/month</span>';
+            } else if (planType === 'annually') {
+                basicPrice.innerHTML = '$199<span class="text-lg font-normal">/year</span>';
+                proPrice.innerHTML = '$599<span class="text-lg font-normal">/year</span>';
+                elitePrice.innerHTML = '$999<span class="text-lg font-normal">/year</span>';
+            }
+
+            document.getElementById('monthly-btn').classList.toggle('text-purple-700', planType === 'monthly');
+            document.getElementById('monthly-btn').classList.toggle('text-gray-500', planType !== 'monthly');
+            document.getElementById('annually-btn').classList.toggle('text-purple-700', planType === 'annually');
+            document.getElementById('annually-btn').classList.toggle('text-gray-500', planType !== 'annually');
+        }
+
+    
+    </script>
+
+</body>
+</html>

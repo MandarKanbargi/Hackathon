@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+</head>
+
+<body class="bg-gray-200 text-gray-800">
+    <span id="emission_data" class="hidden">{{route_data[0].emissions}}</span>
+    <span id="traffic_data" class="hidden">{{route_data[0].traffic_condition}}</span>
+    <span id="weather_data" class="hidden">{{ route_data[0].weather.description }}, {{ route_data[0].weather.temperature }}, {{route_data[0].weather.humidity }}</span>
+    <span id="distance_data" class="hidden">{{ route_data[0].distance}}</span>
+    {% if route_data|length > 1 %}
+    <span id="distance_data1" class="hidden">{{ route_data[1].distance}}</span>
+    {% endif %}
+
+<div class="flex h-screen overflow-hidden justify-start">
+
+        <!-- Sidebar -->
+        <div class="w-1/6 h-full" style="background-image: linear-gradient(to left bottom, #ebf6ff, #e4f2ff, #ddedff, #d7e9ff, #d1e4ff, #cee2ff, #cae1ff, #c7dfff, #c5e0ff, #c2e1ff, #c0e2ff, #bee3ff); border-right: 1px solid #e2e8f0; padding: 1.5rem; overflow-y: auto;">
+            <h2 class="text-4xl font-bold text-teal-600 mb-12">Dashboard</h2>
+            <ul>
+                <li>
+                    <a href="#" class="flex items-center p-4 bg-teal-50 mb-16 rounded-lg hover:bg-teal-100 transition">
+                        <span class="w-6 h-6 bg-gray-400 rounded-full mr-4"></span>
+                        <h3 class="text-xl font-semibold">Route Details</h3>
+                        <span class="ml-auto text-teal-600">●</span>
+                    </a>
+                </li>
+                <!-- Add more menu items here -->
+            </ul>
+            
+            <!-- Feedback Section -->
+            <div class="">
+                <h1 class="text-2xl font-bold mb-8 mt-8">Feedback</h1>
+                <input type="text" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="Enter your feedback...">
+                <button class="mt-6 mb-20 w-full bg-teal-500 text-white py-3 rounded-lg hover:bg-teal-600">Submit Feedback</button>
+            </div>
+            
+            <!-- Support Section -->
+             <br>
+            <div class="">
+                <h2 class="text-2xl font-bold mb-8">Support</h2>
+                <div class="space-y-8">
+                    <div class="flex items-center space-x-4">
+                        <img class="w-12 h-14 rounded-full" src="{{ url_for('static', filename='Image/Avatar.jpeg') }}" alt="Mandar Avatar">
+                        <div>
+                            <p class="font-semibold text-gray-800">Mandar Kanbargi</p>
+                            <p class="text-lg text-gray-500">@mandar36876</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <img class="w-12 h-12 rounded-full" src="{{ url_for('static', filename='Image/Avatar1.jpeg') }}" alt="Amol Avatar">
+                        <div>
+                            <p class="font-medium text-gray-800">Amol Bachhav</p>
+                            <p class="text-sm text-gray-500">@amol864</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <img class="w-12 h-12 rounded-full" src="{{ url_for('static', filename='Image/Avatar2.jpeg') }}" alt="Ajay Avatar">
+                        <div>
+                            <p class="font-medium text-gray-800">Ajay Kumar</p>
+                            <p class="text-sm text-gray-500">@ajay875</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="mt-8 w-full bg-teal-500 text-white py-3 rounded-lg hover:bg-teal-600">Start Conversation</button>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="flex-1 p-6 overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-semibold"><u>Eco-friendly Route and it's result. </u></h1>
+            </div>
+
+            <!-- Dashboard Layout -->
+            <div class="grid grid-cols-4 gap-6">
+                <!-- Metrics Section (Left Side) -->
+                <div class="col-span-1 space-y-9 ">
+                    <div class="bg-yellow-500 p-4 h-1/12 w-82 h-52 font-bold text-white shadow-lg rounded-sm">
+                        <h2 class="text-3xl pb-5">Distance</h2>
+                        <p class="text-2xl font-semibold">{{ route_data[0].distance }} km</p>
+                        <p class="updated-time text-xs">{{ update_time }}</p>
+                    </div>
+                    <div class="bg-red-500 p-4 h-1/12 w-82 h-52 font-bold text-white shadow-lg rounded-sm">
+                        <h2 class="text-3xl pb-5">Weather</h2>
+                        <p class="text-2xl font-semibold">{{ route_data[0].weather.description}}, Temp: {{ route_data[0].weather.temperature }}&#8451;, Humidity: {{ route_data[0].weather.humidity }}%</p>
+                        <p class="updated-time text-xs">{{ update_time }}</p>
+                    </div>
+                    <div class="bg-blue-500 p-4 h-1/12 w-82 h-52 font-bold text-white shadow-lg rounded-sm">
+                        <h2 class="text-3xl pb-5">Emissions Data</h2>
+                        <p class="text-2xl font-semibold">CO2: {{  route_data[0].emissions  }} kg</p>
+                        <p class="updated-time text-xs">{{ update_time }}</p>
+                    </div>
+                    <div class="bg-green-500 p-4 h-1/12 w-82 h-52 font-bold text-white shadow-lg rounded-sm">
+                        <h2 class="text-3xl pb-5">Traffic Condition</h2>
+                        <p class="text-2xl font-semibold">{{ route_data[0].traffic_condition }}</p>
+                        <p class="updated-time text-xs">{{ update_time }}</p>
+                    </div>
+                    <div class="bg-purple-500 p-4 h-1/12 w-82 h-52 font-bold text-white shadow-lg rounded-sm">
+                        <h2 class="text-3xl pb-5">Estimated Travel Time</h2>
+                        <p class="text-2xl font-semibold">{{ route_data[0].estimated_time }}</p>
+                        <p class="updated-time text-xs">{{ update_time }}</p>
+                    </div>
+                </div>
+
+                <!-- Other Sections (Right Side) -->
+                <div class="col-span-3 space-y-6">
+                    <!-- Location Map (Increased size to span across the full width) -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg col-span-3">
+                        <h2 class="text-xl font-semibold mb-4">Location</h2>
+                        <div class="h-96 bg-gray-200 rounded-lg">
+                            <iframe src="{{ url_for('static', filename='route_map.html') }}" class="w-full h-full rounded-lg"></iframe>
+                        </div>
+                    </div>
+
+                    <!-- Graphs Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-semibold mb-4">Traffic Condition</h2>
+                            <canvas id="singleTrafficBarChart"></canvas>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-semibold mb-4">Weather Data</h2>
+                            <canvas id="weatherChart"></canvas>
+                        </div>
+
+                             <!-- FToll StationsChart -->
+                     <div class="bg-white p-6 rounded-lg shadow-lg h-80 w-full">
+                        <h2 class="text-xl font-semibold mb-4">Distance</h2>
+                        <canvas id="distanceLineChart" ></canvas> 
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-lg h-80 w-full flex flex-col">
+                        <h2 class="text-xl font-semibold mb-4">Emissions Percentage</h2>
+                        <div class="relative h-48 flex items-center justify-center"> 
+                            <canvas id="emissionsPieChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Add this script at the end of your body -->
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                    <script>
+                        const emission_data = document.getElementById("emission_data")
+
+                        // Data for the Pie Chart
+                        const emissionsData = {
+                            labels: ['CO2 Emissions'],
+                            datasets: [{
+                                data: [parseInt(emission_data.innerText)], // Emissions data
+                                backgroundColor: ['rgba(75, 192, 192, 0.5)'], // Slice color
+                                borderColor: ['rgba(75, 192, 192, 1)'], // Border color
+                                borderWidth: 1
+                            }]
+                        };
+                    
+                        // Configuration for the Pie Chart
+                        const config = {
+                            type: 'bar',
+                            data: emissionsData,
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        display: true,
+                                        position: 'top'
+                                    },
+                                    tooltip: {
+                                        enabled: true
+                                    }
+                                }
+                            }
+                        };
+                    
+                        // Render the Pie Chart
+                        const ctx = document.getElementById('emissionsPieChart').getContext('2d');
+                        new Chart(ctx, config);
+                        
+                
+                    // Example traffic condition (this will be dynamic in your implementation)
+                    const trafficCondition = document.getElementById('traffic_data').innerText; // Can be 'Clear', 'Moderate', or 'Congested'
+
+                    // Map traffic conditions to predefined static values and colors
+                    const trafficMapping = {
+                        'Clear': { value: 1, color: 'rgba(75, 192, 192, 0.5)', borderColor: 'rgba(75, 192, 192, 1)' },       // Green
+                        'Moderate': { value: 2, color: 'rgba(255, 205, 86, 0.5)', borderColor: 'rgba(255, 205, 86, 1)' },    // Yellow
+                        'Congested': { value: 3, color: 'rgba(255, 99, 132, 0.5)', borderColor: 'rgba(255, 99, 132, 1)' }    // Red
+                    };
+
+                    // Retrieve the value and colors for the current traffic condition
+                    const trafficValue = trafficMapping[trafficCondition].value;
+                    const trafficColor = trafficMapping[trafficCondition].color;
+                    const trafficBorderColor = trafficMapping[trafficCondition].borderColor;
+
+                    // Data for the Bar Chart
+                    const singleTrafficBarData = {
+                        labels: [trafficCondition], // Single traffic condition as label
+                        datasets: [{
+                            label: 'Traffic Condition Level', // Label for the dataset
+                            data: [trafficValue], // Static value based on traffic condition
+                            backgroundColor: [trafficColor], // Dynamic background color
+                            borderColor: [trafficBorderColor], // Dynamic border color
+                            borderWidth: 1 // Border thickness
+                        }]
+                    };
+
+                    // Configuration for the Bar Chart
+                    const singleTrafficBarConfig = {
+                        type: 'bar',
+                        data: singleTrafficBarData,
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false // No legend needed for a single condition
+                                },
+                                tooltip: {
+                                    enabled: true, // Enable tooltips
+                                    callbacks: {
+                                        label: function (context) {
+                                            return `${context.label}: ${trafficValue} (Predefined Level)`; // Tooltip text
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true, // Ensure the y-axis starts at 0
+                                    title: {
+                                        display: true,
+                                        text: 'Predefined Level'
+                                    },
+                                    ticks: {
+                                        stepSize: 1 // Step size for levels
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Traffic Condition'
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    // Render the Bar Chart
+                    const ctx1 = document.getElementById('singleTrafficBarChart').getContext('2d');
+                    new Chart(ctx1, singleTrafficBarConfig);
+                    
+                    const weather_data = document.getElementById('weather_data').innerText.split(",")
+
+                    const weatherData = {
+                            description: weather_data[0].trim(), // Weather condition (e.g., Clear, Rainy, Cloudy)
+                            temperature: parseInt(weather_data[1].trim()),      // Temperature in °C
+                            humidity: parseInt(weather_data[2].trim()),           // Humidity in percentage
+                        };
+
+                        // Bar Chart Data
+                        const chartData = {
+                            labels: ['Temperature (°C)', 'Humidity (%)'], // X-axis labels
+                            datasets: [{
+                                label: `Weather: ${weatherData.description}`, // Display weather description in the legend
+                                data: [weatherData.temperature, weatherData.humidity], // Data values
+                                backgroundColor: [
+                                    'rgba(75, 192, 192, 0.5)', // Temperature bar color
+                                    'rgba(255, 205, 86, 0.5)'  // Humidity bar color
+                                ],
+                                borderColor: [
+                                    'rgba(75, 192, 192, 1)',   // Border color for Temperature
+                                    'rgba(255, 205, 86, 1)'    // Border color for Humidity
+                                ],
+                                borderWidth: 1 // Border thickness
+                            }]
+                        };
+
+                        // Configuration for the Bar Chart
+                        const weatherChartConfig = {
+                            type: 'bar',
+                            data: chartData,
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        display: true, // Show legend with weather description
+                                        position: 'top'
+                                    },
+                                    tooltip: {
+                                        enabled: true // Enable tooltips
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true, // Ensure y-axis starts at 0
+                                        title: {
+                                            display: true,
+                                            text: 'Values'
+                                        }
+                                    },
+                                    x: {
+                                        title: {
+                                            display: true,
+                                            text: 'Weather Metrics'
+                                        }
+                                    }
+                                }
+                            }
+                        };
+
+                        // Render the Bar Chart
+                        const ctx2 = document.getElementById('weatherChart').getContext('2d');
+                        new Chart(ctx2, weatherChartConfig);
+
+                        const distance_data = document.getElementById("distance_data").innerText
+
+                        const distance_data1 = document.getElementById("distance_data1")
+
+                        const routeDistances = {
+                            route1: parseInt(distance_data), // Distance for Route 1 (in km)
+                            route2: distance_data1 ? parseInt(distance_data1.innerText) : Math.floor(Math.random() * 1000) // Distance for Route 2 (in km)
+                        };
+                        console.log(distance_data1);
+
+                        // Data for the Line Chart
+                        const distanceData = {
+                            labels: ['Route 1', 'Route 2'], // X-axis labels
+                            datasets: [{
+                                label: 'Distance (km)', // Label for the dataset
+                                data: [routeDistances.route1, routeDistances.route2], // Distances for the routes
+                                borderColor: 'rgba(75, 192, 192, 1)', // Line color
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)', // Line fill color
+                                tension: 0.4, // Curve of the line (0 = straight, higher = more curved)
+                                borderWidth: 2 // Thickness of the line
+                            }]
+                        };
+
+                        // Configuration for the Line Chart
+                        const distanceChartConfig = {
+                            type: 'line',
+                            data: distanceData,
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        display: true, // Show the legend
+                                        position: 'top'
+                                    },
+                                    tooltip: {
+                                        enabled: true // Enable tooltips on hover
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true, // Ensure y-axis starts at 0
+                                        title: {
+                                            display: true,
+                                            text: 'Distance (km)'
+                                        }
+                                    },
+                                    x: {
+                                        title: {
+                                            display: true,
+                                            text: 'Routes'
+                                        }
+                                    }
+                                }
+                            }
+                        };
+
+                        // Render the Line Chart
+                        const ctx3 = document.getElementById('distanceLineChart').getContext('2d');
+                        new Chart(ctx3, distanceChartConfig);
+
+                    </script>
+                    
+                    </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+         // Emissions Pie Chart
+         const emissionsCtx = document.getElementById('emissionsPieChart').getContext('2d');
+        new Chart(emissionsCtx, {
+            type: 'pie',
+            data: {
+                labels: ['CO2', 'Enviroment' ],
+                datasets: [{
+                    data: [65, 35],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(31, 206, 25, 0.86)',
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Sales Chart
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+                datasets: [{
+                    label: 'Traffic',
+                    data: [12000, 19000, 30000, 50000, 20000, 30000],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            }
+        });
+
+        // Orders Chart
+        const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+        new Chart(ordersCtx, {
+            type: 'bar',
+            data: {
+                labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+                datasets: [{
+                    label: 'Fuel Stations',
+                    data: [50, 100, 150, 200, 250, 300],  // Data for fuel stations
+                    backgroundColor: 'rgba(38, 69, 255, 0.6)', // Bold blue background
+                    borderColor: 'rgba(38, 69, 255, 1)', // Bold blue border
+                    borderWidth: 1
+                }]
+            }
+        });
+
+          // Toll Station History Chart
+          const fuelStationHistoryCtx = document.getElementById('fuelStationHistoryChart').getContext('2d');
+        new Chart(fuelStationHistoryCtx, {
+            type: 'line',
+            data: {
+                labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+                datasets: [{
+                    label: 'Toll Station Visits', 
+                    data: [200, 300, 250, 220, 400, 380], 
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Visits'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Months'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
